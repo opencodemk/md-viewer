@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <div id="sidebar">
+      <div id="sidebar-resize-handle"></div>
+      <div id="file-info"></div>
+      <div id="folder-bar"><select id="folder-dropdown"></select><button id="folder-close-btn" title="Close folder">&times;</button></div>
+      <div id="search-bar"><input type="text" id="file-search" placeholder="Search files..."><button id="tree-toggle" title="Toggle tree view">📂</button></div>
+      <div id="file-list"></div>
+      <div id="sidebar-divider"></div>
+      <div id="toc"></div>
+      <button id="sidebar-open-btn">Open Folder</button>
+      <button id="theme-btn" title="Toggle theme">🌙</button>
+    </div>
+    <div id="main-area">
+      <div id="reading-progress"></div>
+      <div id="tab-bar"></div>
+      <div id="find-bar" class="hidden">
+        <input type="text" id="find-input" placeholder="Find in page...">
+        <span id="find-count"></span>
+        <button id="find-prev">▲</button>
+        <button id="find-next">▼</button>
+        <button id="find-close">&times;</button>
+      </div>
+      <div id="edit-controls" class="hidden">
+        <button id="save-btn">Save</button>
+        <span id="edit-status"></span>
+      </div>
+      <div id="content" class="markdown-body">
+        <div id="placeholder">
+          <h2>Markdown Viewer</h2>
+          <p>Press <kbd>Ctrl+O</kbd> to open a <code>.md</code> file, or <kbd>Ctrl+K</kbd> to open a folder.</p>
+          <button id="open-folder-btn">Open Folder</button>
+          <p style="margin-top:8px;font-size:13px;color:#666;">Drag &amp; drop a folder or .md file onto the window.</p>
+        </div>
+      </div>
+      <textarea id="editor-textarea" class="hidden"></textarea>
+      <div id="statusbar">
+        <div id="status-left">
+          <span id="status-info">Ready</span>
+        </div>
+        <div id="status-center">
+          <span id="status-edit-btn" class="status-btn" title="Toggle Edit">✏️</span>
+        </div>
+        <div id="status-right">
+          <span id="status-font-size" class="status-btn-group">
+            <button id="font-dec" class="status-btn" title="Smaller">A-</button>
+            <button id="font-reset" class="status-btn" title="Reset">A</button>
+            <button id="font-inc" class="status-btn" title="Larger">A+</button>
+          </span>
+          <span id="status-stats"></span>
+          <span id="status-version"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toast"></div>
+  <div id="lightbox" class="hidden" onclick="closeLightbox()">
+    <span id="lightbox-close">&times;</span>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
