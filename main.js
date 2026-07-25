@@ -7,6 +7,8 @@ let mainWindow
 let startupFileData = null
 let startupFolderData = null
 let watchedFile = null
+let recentFiles = []
+let recentFilePath = ''
 
 function watchFile(filePath) {
   if (watchedFile) { try { fs.unwatchFile(watchedFile) } catch (_) {} }
@@ -153,6 +155,45 @@ function createWindow() {
       Menu.buildFromTemplate(template).popup()
     }
   })
+}
+
+function addRecent(name, filePath, isDir) {
+  const norm = p => path.normalize(p).replace(/[\/\\]$/, '').toLowerCase()
+  const key = norm(filePath)
+  recentFiles = recentFiles.filter(f => norm(f.filePath) !== key)
+  recentFiles.unshift({ name, filePath, isDir })
+  if (recentFiles.length > 3) recentFiles = recentFiles.slice(0, 3)
+  try { fs.writeFileSync(recentFilePath, JSON.stringify(recentFiles)) } catch (_) {}
+  buildMenu()
+}
+
+function buildMenu() {
+  const norm = p => path.normalize(p).replace(/[\/\\]$/, '').toLowerCase()
+  const seen = new Set()
+  const unique = recentFiles.filter(f => {
+    const k = norm(f.filePath)
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+  recentFiles = unique
+  let recentSubmenu
+  if (recentFiles.length > 0) {
+    recentSubmenu = recentFiles.map(f => ({
+      label: f.name,
+      click: () => {
+        if (f.isDir) {
+          loadFolder(f.filePath)
+        } else {
+          loadFile(f.filePath)
+        }
+      }
+    }))
+    recentSubmenu.push({ type: 'separator' })
+    recentSubmenu.push({ label: 'Clear Recent', click: () => { recentFiles = []; try { fs.writeFileSync(recentFilePath, '[]') } catch (_) {}; buildMenu() } })
+  } else {
+    recentSubmenu = [{ label: '(Empty)', enabled: false }]
+  }
 
   const menu = Menu.buildFromTemplate([
     {
@@ -175,6 +216,14 @@ function createWindow() {
         { role: 'zoomIn' },
         { role: 'zoomOut' },
         { role: 'resetZoom' },
+        { type: 'separator' },
+        { label: 'Recent Files', submenu: recentSubmenu },
+      ],
+    },
+    {
+      label: 'Help',
+      submenu: [
+        { label: 'Welcome', click: () => mainWindow.webContents.send('show-welcome') },
       ],
     },
   ])
@@ -204,6 +253,7 @@ function loadFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8')
   const lines = content.split('\n').length
   const words = content.trim() ? content.trim().split(/\s+/).length : 0
+  addRecent(path.basename(filePath), filePath, false)
   mainWindow.webContents.send('file-opened', { content, fileName: path.basename(filePath), filePath, parentDir: path.dirname(filePath), lines, words })
   watchFile(filePath)
 }
@@ -214,6 +264,7 @@ function loadFolder(folderPath) {
     .sort()
     .map(f => ({ name: f, path: path.join(folderPath, f) }))
 
+  addRecent(path.basename(folderPath), folderPath, true)
   mainWindow.webContents.send('folder-opened', { folderName: path.basename(folderPath), folderPath, files })
 }
 
@@ -229,31 +280,7 @@ ipcMain.handle('get-file-content', async (_event, filePath) => {
 })
 
 ipcMain.handle('select-folder', async () => {
-  if (process.platform === 'win32') {
-    let script = path.join(__dirname, 'folder-picker.ps1')
-    if (!fs.existsSync(script)) {
-      script = path.join(app.getPath('temp'), 'mdv-folder-picker.ps1')
-      if (!fs.existsSync(script)) {
-        fs.writeFileSync(script, `Add-Type -AssemblyName System.Windows.Forms
-$f = New-Object System.Windows.Forms.FolderBrowserDialog
-$f.RootFolder = [Environment+SpecialFolder]::MyComputer
-$f.ShowNewFolderButton = $false
-$f.AutoUpgradeEnabled = $true
-$f.Description = "Select a folder"
-if ($f.ShowDialog() -eq 'OK') { Write-Output $f.SelectedPath }`, 'utf-8')
-      }
-    }
-    const folderPath = await new Promise(resolve => {
-      const ps = execFile('powershell.exe', ['-NoProfile', '-NoLogo', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', script], { windowsHide: true, timeout: 120000 }, (err, stdout) => {
-        resolve(err ? '' : stdout.trim())
-      })
-      ps.on('error', () => resolve(''))
-    })
-    if (folderPath && fs.existsSync(folderPath)) {
-      loadFolder(folderPath)
-      return folderPath
-    }
-  }
+  if (mainWindow) mainWindow.focus()
   const result = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] })
   if (!result.canceled && result.filePaths.length > 0) {
     loadFolder(result.filePaths[0])
@@ -313,7 +340,20 @@ ipcMain.handle('get-app-version', () => app.getVersion())
 
 app.whenReady().then(() => {
   app.setAppUserModelId('com.mdviewer.app')
-  parseStartupArgs(); createWindow()
+  recentFilePath = path.join(app.getPath('userData'), 'recent.json')
+  try {
+    const data = JSON.parse(fs.readFileSync(recentFilePath, 'utf-8'))
+    const norm = p => path.normalize(p).replace(/[\/\\]$/, '').toLowerCase()
+    const seen = new Set()
+    recentFiles = data.filter(f => {
+      if (!f.filePath || typeof f.isDir !== 'boolean') return false
+      const key = norm(f.filePath)
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  } catch (_) {}
+  parseStartupArgs(); createWindow(); buildMenu()
 })
 
 app.on('window-all-closed', () => { app.quit() })

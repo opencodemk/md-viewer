@@ -10,6 +10,7 @@
   <div id="app">
     <div id="sidebar">
       <div id="sidebar-resize-handle"></div>
+      <div id="sidebar-collapse-btn" title="Collapse sidebar">&laquo;</div>
       <div id="file-info"></div>
       <div id="folder-bar"><select id="folder-dropdown"></select><button id="folder-close-btn" title="Close folder">&times;</button></div>
       <div id="search-bar"><input type="text" id="file-search" placeholder="Search files..."><button id="tree-toggle" title="Toggle tree view">📂</button></div>
@@ -33,15 +34,17 @@
         <button id="save-btn">Save</button>
         <span id="edit-status"></span>
       </div>
-      <div id="content" class="markdown-body">
-        <div id="placeholder">
-          <h2>Markdown Viewer</h2>
-          <p>Press <kbd>Ctrl+O</kbd> to open a <code>.md</code> file, or <kbd>Ctrl+K</kbd> to open a folder.</p>
-          <button id="open-folder-btn">Open Folder</button>
-          <p style="margin-top:8px;font-size:13px;color:#666;">Drag &amp; drop a folder or .md file onto the window.</p>
+      <div id="split-container">
+        <div id="content" class="markdown-body">
+          <div id="placeholder">
+            <h2>Markdown Viewer</h2>
+            <p>Press <kbd>Ctrl+O</kbd> to open a <code>.md</code> file, or <kbd>Ctrl+K</kbd> to open a folder.</p>
+            <button id="open-folder-btn">Open Folder</button>
+            <p style="margin-top:8px;font-size:13px;color:#666;">Drag &amp; drop a folder or .md file onto the window.</p>
+          </div>
         </div>
+        <textarea id="editor-textarea" class="hidden"></textarea>
       </div>
-      <textarea id="editor-textarea" class="hidden"></textarea>
       <div id="statusbar">
         <div id="status-left">
           <span id="status-info">Ready</span>
@@ -61,6 +64,7 @@
       </div>
     </div>
   </div>
+  <div id="sidebar-toggle" title="Show sidebar">&raquo;</div>
   <div id="toast"></div>
   <div id="lightbox" class="hidden" onclick="closeLightbox()">
     <span id="lightbox-close">&times;</span>

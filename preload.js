@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onFileChanged: (callback) => ipcRenderer.on('file-changed', (_event, data) => callback(data)),
   onPrint: (callback) => ipcRenderer.on('print', () => callback()),
   onWindowStateChanged: (callback) => ipcRenderer.on('window-state-changed', (_event, isMaximized) => callback(isMaximized)),
+  onShowWelcome: (callback) => ipcRenderer.on('show-welcome', () => callback()),
   getFileContent: (filePath) => ipcRenderer.invoke('get-file-content', filePath),
   openPath: (filePath) => ipcRenderer.send('open-path', filePath),
   selectFolder: () => ipcRenderer.invoke('select-folder'),

@@ -136,7 +136,7 @@ body {
   overflow-y: auto;
   user-select: none;
   -webkit-user-select: none;
-  transition: background 0.2s, border-color 0.2s;
+  transition: width 0.2s, min-width 0.2s, max-width 0.2s, background 0.2s, border-color 0.2s;
   position: relative;
 }
 
@@ -153,6 +153,72 @@ body {
 #sidebar-resize-handle:hover {
   background: var(--accent);
   opacity: 0.3;
+}
+
+#sidebar-collapse-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 40px;
+  background: var(--sidebar);
+  border: 1px solid var(--sidebar-border);
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  color: var(--toc-item);
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 51;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+#sidebar-collapse-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+#sidebar.collapsed {
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+#sidebar.collapsed ~ #main-area {
+  margin-left: 0;
+}
+
+#sidebar-toggle {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 40px;
+  background: var(--sidebar);
+  border: 1px solid var(--sidebar-border);
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  color: var(--toc-item);
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 51;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  display: none;
+}
+#sidebar-toggle:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+body.sidebar-collapsed #sidebar-toggle {
+  display: flex;
 }
 
 #main-area {
@@ -545,6 +611,38 @@ mark.find-highlight.active { background: #ff6b35; color: #fff; }
   overflow-y: auto;
 }
 
+#split-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+body.sidebar-editing #split-container {
+  display: flex;
+  flex-direction: row;
+}
+body.sidebar-editing #split-container #editor-textarea {
+  order: -1;
+  border-right: 2px solid var(--border);
+}
+body.sidebar-editing #content {
+  display: block !important;
+  flex: 1;
+  max-width: none;
+  padding: 20px 32px;
+  overflow-y: auto;
+}
+body.sidebar-editing #editor-textarea {
+  flex: 1;
+  display: block !important;
+}
+body.sidebar-editing #edit-controls {
+  display: flex !important;
+}
+body.sidebar-editing #placeholder {
+  display: none;
+}
+
 /* Status Bar Controls */
 #statusbar {
   display: flex;
@@ -614,7 +712,7 @@ mark.find-highlight.active { background: #ff6b35; color: #fff; }
   overflow-y: auto;
   line-height: 1.75;
   font-size: 15px;
-  max-width: 900px;
+  width: 100%;
   position: relative;
 }
 

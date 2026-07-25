@@ -7,6 +7,7 @@ let folders = []
 let folderIdCounter = 0
 let selectedFolderId = null
 let isEditing = false
+const sidebar = document.getElementById('sidebar')
 function setTabUnsaved(unsaved) {
   const tab = tabs.find(t => t.id === activeTabId)
   if (tab) tab.unsaved = unsaved
@@ -28,36 +29,48 @@ const folderDropdown = document.getElementById('folder-dropdown')
 const folderCloseBtn = document.getElementById('folder-close-btn')
 const themeBtn = document.getElementById('theme-btn')
 
-const savedTheme = localStorage.getItem('mdv-theme') || 'light'
+const savedTheme = 'light'
 document.body.setAttribute('data-theme', savedTheme === 'light' ? 'light' : '')
 themeBtn.textContent = savedTheme === 'light' ? '☀️' : '🌙'
 themeBtn.addEventListener('click', () => {
   const isLight = document.body.getAttribute('data-theme') === 'light'
   if (isLight) {
     document.body.removeAttribute('data-theme')
-    localStorage.setItem('mdv-theme', 'dark')
     themeBtn.textContent = '🌙'
   } else {
     document.body.setAttribute('data-theme', 'light')
-    localStorage.setItem('mdv-theme', 'light')
     themeBtn.textContent = '☀️'
   }
 })
 
+// Sidebar collapse
+const collapseBtn = document.getElementById('sidebar-collapse-btn')
+const toggleBtn = document.getElementById('sidebar-toggle')
+
+collapseBtn.addEventListener('click', () => {
+  if (isEditing) return
+  sidebar.classList.add('collapsed')
+  document.body.classList.add('sidebar-collapsed')
+})
+toggleBtn.addEventListener('click', () => {
+  if (isEditing) return
+  sidebar.classList.remove('collapsed')
+  document.body.classList.remove('sidebar-collapsed')
+})
+
 // Font Size
-const savedFontSize = localStorage.getItem('mdv-font-size') || '15'
+const savedFontSize = '15'
 document.getElementById('content').style.fontSize = savedFontSize + 'px'
 document.getElementById('font-dec').addEventListener('click', () => changeFontSize(-1))
 document.getElementById('font-inc').addEventListener('click', () => changeFontSize(1))
 document.getElementById('font-reset').addEventListener('click', () => changeFontSize(0))
 
+let currentFontSize = 15
 function changeFontSize(delta) {
-  let cur = parseInt(localStorage.getItem('mdv-font-size') || '15')
-  if (delta === 0) cur = 15
-  else cur = Math.max(12, Math.min(24, cur + delta))
-  localStorage.setItem('mdv-font-size', cur)
-  document.getElementById('content').style.fontSize = cur + 'px'
-  document.getElementById('editor-textarea').style.fontSize = (cur - 1) + 'px'
+  if (delta === 0) currentFontSize = 15
+  else currentFontSize = Math.max(12, Math.min(24, currentFontSize + delta))
+  document.getElementById('content').style.fontSize = currentFontSize + 'px'
+  document.getElementById('editor-textarea').style.fontSize = (currentFontSize - 1) + 'px'
 }
 
 // Reading Progress
@@ -233,7 +246,6 @@ function addTab(path, name) {
   const id = ++tabIdCounter
   tabs.push({ id, path, name, unsaved: false })
   activeTabId = id
-  showToast('addTab: ' + name)
   renderTabs()
 }
 
@@ -318,11 +330,10 @@ window.electronAPI.onFileChanged(({ content, filePath, lines, words }) => {
     showToast('File updated')
   }
 })
-const sidebar = document.getElementById('sidebar')
 const resizeHandle = document.getElementById('sidebar-resize-handle')
 let isResizing = false
 
-const savedSidebarWidth = localStorage.getItem('mdv-sidebar-width')
+const savedSidebarWidth = null
 if (savedSidebarWidth) sidebar.style.width = savedSidebarWidth + 'px'
 
 resizeHandle.addEventListener('mousedown', (e) => {
@@ -343,7 +354,6 @@ function onMouseMove(e) {
 function onMouseUp() {
   isResizing = false
   document.body.style.cursor = ''
-  localStorage.setItem('mdv-sidebar-width', parseInt(sidebar.style.width))
   document.removeEventListener('mousemove', onMouseMove)
   document.removeEventListener('mouseup', onMouseUp)
 }
@@ -441,6 +451,7 @@ document.addEventListener('drop', (e) => {
 })
 
 document.getElementById('open-folder-btn')?.addEventListener('click', () => {
+  console.log('open-folder-btn clicked')
   window.electronAPI.selectFolder()
 })
 document.getElementById('sidebar-open-btn')?.addEventListener('click', () => {
@@ -521,6 +532,7 @@ function readAllDirEntries(dirEntry) {
 }
 
 window.electronAPI.onFileOpened(({ content, fileName, filePath, parentDir, lines, words }) => {
+  closeWelcomeTab()
   currentFilePath = filePath
   currentFileName = fileName
   currentContent = content
@@ -539,18 +551,29 @@ window.electronAPI.onFileOpened(({ content, fileName, filePath, parentDir, lines
 })
 
 window.electronAPI.onFolderOpened(({ folderName, folderPath, files }) => {
+  closeWelcomeTab()
+  currentFilePath = ''
+  currentFileName = ''
+  currentContent = ''
   const mapped = files.map(f => ({ name: f.name, path: f.path }))
-  folders.push({ id: ++folderIdCounter, name: folderName, path: folderPath, files: mapped })
-  selectedFolderId = folderIdCounter
+  const existing = folders.find(f => f.path === folderPath)
+  if (existing) {
+    existing.files = mapped
+    existing.name = folderName
+    selectedFolderId = existing.id
+  } else {
+    folders.push({ id: ++folderIdCounter, name: folderName, path: folderPath, files: mapped })
+    selectedFolderId = folderIdCounter
+  }
   updateFolderBar()
   renderFileList()
-  if (mapped.length > 0 && !currentFilePath) {
+  if (mapped.length > 0) {
     openFile(mapped[0].path, null, mapped[0].name)
   }
 })
 
 async function openFile(filePath, content, fileName) {
-  showToast('openFile: ' + fileName)
+  if (filePath !== WELCOME_PATH) closeWelcomeTab()
   currentFilePath = filePath
   currentFileName = fileName
   addTab(filePath, fileName)
@@ -584,7 +607,7 @@ function renderMarkdown(content, fileName, filePath) {
   document.getElementById('content').className = 'markdown-body'
   const ph = document.getElementById('placeholder')
   if (ph) ph.style.display = 'none'
-  document.getElementById('file-info').innerHTML = `<div class="file-name">${escapeHtml(fileName)}</div><div class="file-path">${escapeHtml(filePath)}</div>`
+  document.getElementById('file-info').innerHTML = `<div class="file-name">${escapeHtml(fileName)}</div>`
   renderToc(headings)
   document.querySelectorAll('#content h1, #content h2, #content h3, #content h4').forEach(h => {
     h.addEventListener('click', () => {
@@ -632,24 +655,29 @@ document.addEventListener('keydown', (e) => {
 saveBtn.addEventListener('click', saveEditor)
 
 function toggleEdit() {
-  if (!currentFilePath) return
+  if (!currentFilePath || currentFilePath === WELCOME_PATH) return
   isEditing = !isEditing
   if (isEditing) {
     editorTextarea.value = currentContent
-    document.getElementById('content').style.display = 'none'
-    editorTextarea.classList.remove('hidden')
     editControls.classList.remove('hidden')
     editBtn.textContent = '👁️'
     editBtn.title = 'View mode'
     setTabUnsaved(false)
     editStatus.textContent = 'Editing'
+    sidebar.classList.add('collapsed')
+    document.body.classList.add('sidebar-collapsed')
+    document.body.classList.add('sidebar-editing')
+    renderMarkdown(editorTextarea.value, currentFileName, currentFilePath)
     editorTextarea.focus()
     editorTextarea.setSelectionRange(0, 0)
     editorTextarea.scrollTop = 0
   } else {
+    document.body.classList.remove('sidebar-editing')
     document.getElementById('content').style.display = ''
     editorTextarea.classList.add('hidden')
     editControls.classList.add('hidden')
+    sidebar.classList.remove('collapsed')
+    document.body.classList.remove('sidebar-collapsed')
     editBtn.textContent = '✏️'
     editBtn.title = 'Toggle Edit'
     const tab = tabs.find(t => t.id === activeTabId)
@@ -690,6 +718,9 @@ editorTextarea.addEventListener('input', () => {
   if (tab && !tab.unsaved) {
     tab.unsaved = true
     editStatus.textContent = 'Unsaved changes'
+  }
+  if (document.body.classList.contains('sidebar-editing')) {
+    renderMarkdown(editorTextarea.value, currentFileName, currentFilePath)
   }
 })
 
@@ -838,6 +869,75 @@ window.scrollToHeading = function(id) {
     if (tocItem) tocItem.classList.add('active')
   }
 }
+
+// Show welcome on startup (no file passed from command line)
+const WELCOME_PATH = '__welcome'
+const WELCOME_CONTENT = `# Markdown Viewer
+
+Welcome to **Markdown Viewer**!
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| Ctrl+O | Open Markdown file |
+| Ctrl+K | Open folder |
+| Ctrl+S | Save (edit mode) |
+| Ctrl+F | Find in page |
+| Ctrl+= / Ctrl+- | Font size +/- |
+
+## Features
+
+- **Tabs** — open multiple files at once
+- **Edit mode** — click the pencil icon to edit, split view in collapsed mode
+- **Dark/Light theme** — click the moon/sun icon
+- **Sidebar** — browse files, collapse with the arrow button
+- **Find** — Ctrl+F to search within the page
+- **Print to PDF** — Ctrl+P
+
+## How to Use
+
+1. Open a folder with **Ctrl+K** to browse all .md files
+2. Or drag & drop a file/folder onto the window
+3. Click a file in the sidebar to view it
+4. Click the pencil icon to edit with live preview
+
+Enjoy reading!
+`
+
+function showWelcomeTab() {
+  const existing = tabs.find(t => t.path === WELCOME_PATH)
+  if (existing) { switchTab(existing.id); return }
+  currentFilePath = WELCOME_PATH
+  currentFileName = 'Welcome'
+  currentContent = WELCOME_CONTENT
+  addTab(WELCOME_PATH, 'Welcome')
+  const content = document.getElementById('content')
+  content.innerHTML = ''
+  content.className = 'markdown-body'
+  const ph = document.getElementById('placeholder')
+  if (ph) ph.style.display = 'none'
+  const { html, headings } = window.electronAPI.parseMarkdown(WELCOME_CONTENT)
+  content.innerHTML = html
+  document.getElementById('file-info').innerHTML = ''
+  renderToc(headings)
+}
+
+function closeWelcomeTab() {
+  const idx = tabs.findIndex(t => t.path === WELCOME_PATH)
+  if (idx !== -1) tabs.splice(idx, 1)
+}
+
+try {
+  if (!currentFilePath) {
+    showWelcomeTab()
+  }
+} catch (e) {
+  document.body.innerHTML = '<pre style="color:red;padding:20px;">ERROR: ' + e.message + '\n' + e.stack + '</pre>'
+}
+
+// IPC: show welcome from menu
+window.electronAPI.onShowWelcome?.(() => showWelcomeTab())
 
 function showToast(msg) {
   const t = document.getElementById('toast')
