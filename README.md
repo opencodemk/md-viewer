@@ -2,6 +2,8 @@
 
 A desktop markdown editor and viewer built with Electron.
 
+![Screenshot](img/screenshot.png)
+
 ## Features
 
 - View and edit `.md` / `.markdown` files
@@ -29,7 +31,7 @@ A desktop markdown editor and viewer built with Electron.
 
 ## Install
 
-Download `MarkdownViewer-1.2.0-setup.exe` and run the installer.
+Download `MarkdownViewer-1.3.0-setup.exe` and run the installer.
 
 ## Development
 
