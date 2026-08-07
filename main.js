@@ -358,3 +358,9 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => { app.quit() })
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
+app.on('before-quit', () => {
+  if (watchedFile) {
+    try { fs.unwatchFile(watchedFile) } catch (_) {}
+    watchedFile = null
+  }
+})

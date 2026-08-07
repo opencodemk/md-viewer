@@ -23,7 +23,9 @@
       "node_modules/**/*"
     ],
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "img/icon.ico"
     },
     "nsis": {
@@ -37,6 +39,7 @@
     }
   },
   "dependencies": {
+    "highlight.js": "^11.11.1",
     "marked": "^15.0.0"
   },
   "devDependencies": {
