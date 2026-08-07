@@ -1,5 +1,15 @@
 const { contextBridge, ipcRenderer } = require('electron')
 const { marked, Renderer } = require('marked')
+const hljs = require('highlight.js')
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 function parseMarkdown(content) {
   const renderer = new Renderer()
@@ -12,7 +22,13 @@ function parseMarkdown(content) {
   renderer.code = ({ text, lang }) => {
     const langClass = lang ? ` class="lang-${lang}"` : ''
     const langLabel = lang ? `<span class="code-lang">${lang}</span>` : ''
-    return `<div class="code-block-wrapper"><div class="code-header">${langLabel}<button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre${langClass}><code>${text}</code></pre></div>`
+    let highlighted = escapeHtml(text)
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        highlighted = hljs.highlight(text, { language: lang, ignoreIllegals: true }).value
+      } catch (_) {}
+    }
+    return `<div class="code-block-wrapper"><div class="code-header">${langLabel}<button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre${langClass}><code class="hljs">${highlighted}</code></pre></div>`
   }
   marked.setOptions({ renderer, breaks: true, gfm: true })
   return { html: marked.parse(content), headings }

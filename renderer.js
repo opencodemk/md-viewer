@@ -29,7 +29,7 @@ const folderDropdown = document.getElementById('folder-dropdown')
 const folderCloseBtn = document.getElementById('folder-close-btn')
 const themeBtn = document.getElementById('theme-btn')
 
-const savedTheme = 'light'
+const savedTheme = localStorage.getItem('mdv-theme') || 'light'
 document.body.setAttribute('data-theme', savedTheme === 'light' ? 'light' : '')
 themeBtn.textContent = savedTheme === 'light' ? '☀️' : '🌙'
 themeBtn.addEventListener('click', () => {
@@ -37,9 +37,11 @@ themeBtn.addEventListener('click', () => {
   if (isLight) {
     document.body.removeAttribute('data-theme')
     themeBtn.textContent = '🌙'
+    localStorage.setItem('mdv-theme', 'dark')
   } else {
     document.body.setAttribute('data-theme', 'light')
     themeBtn.textContent = '☀️'
+    localStorage.setItem('mdv-theme', 'light')
   }
 })
 
@@ -59,18 +61,19 @@ toggleBtn.addEventListener('click', () => {
 })
 
 // Font Size
-const savedFontSize = '15'
+const savedFontSize = parseInt(localStorage.getItem('mdv-fontSize')) || 15
 document.getElementById('content').style.fontSize = savedFontSize + 'px'
 document.getElementById('font-dec').addEventListener('click', () => changeFontSize(-1))
 document.getElementById('font-inc').addEventListener('click', () => changeFontSize(1))
 document.getElementById('font-reset').addEventListener('click', () => changeFontSize(0))
 
-let currentFontSize = 15
+let currentFontSize = savedFontSize
 function changeFontSize(delta) {
   if (delta === 0) currentFontSize = 15
   else currentFontSize = Math.max(12, Math.min(24, currentFontSize + delta))
   document.getElementById('content').style.fontSize = currentFontSize + 'px'
   document.getElementById('editor-textarea').style.fontSize = (currentFontSize - 1) + 'px'
+  localStorage.setItem('mdv-fontSize', currentFontSize.toString())
 }
 
 // Reading Progress

@@ -14,7 +14,8 @@
   --folder-bar: #2a2a2a;
   --input-bg: #1e1e1e;
   --border: #3c3c3c;
-  --code-bg: #2d2d2d;
+  --code-bg: #161b22;
+  --code-text: #c9d1d9;
   --pre-bg: #1a1a1a;
   --blockquote-bg: #252526;
   --table-border: #333;
@@ -44,7 +45,8 @@
   --tab-hover: #4a4a4a;
   --search-bg: #1e1e1e;
   --lightbox-bg: rgba(0,0,0,0.9);
-  --code-header: #2d2d2d;
+  --code-header-bg: #1f2228;
+  --hover: #2a2d2e;
 }
 
 [data-theme="light"] {
@@ -63,8 +65,9 @@
   --folder-bar: #eaeaea;
   --input-bg: #ffffff;
   --border: #d0d0d0;
-  --code-bg: #f0f0f0;
-  --pre-bg: #f6f6f6;
+  --code-bg: #f6f8fa;
+  --code-text: #24292e;
+  --pre-bg: #f6f8fa;
   --blockquote-bg: #f8f8f8;
   --table-border: #d0d0d0;
   --table-header: #f0f0f0;
@@ -94,7 +97,8 @@
   --tab-hover: #e0e0e0;
   --search-bg: #ffffff;
   --lightbox-bg: rgba(255,255,255,0.95);
-  --code-header: #e8e8e8;
+  --code-header-bg: #eaeaea;
+  --hover: #e8e8e8;
 }
 
 * {
@@ -1002,3 +1006,71 @@ body.drag-over #app::after {
 }
 
 #lightbox-close:hover { opacity: 1; }
+
+/* Syntax Highlighting - GitHub Dark theme */
+.hljs {
+  background: var(--code-bg);
+  color: var(--code-text);
+}
+
+.hljs-comment, .hljs-quote { color: #8b949e; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-addition { color: #ff7b72; }
+.hljs-number, .hljs-string, .hljs-meta .hljs-meta-string, .hljs-literal, .hljs-doctag, .hljs-regexp { color: #a5d6ff; }
+.hljs-title, .hljs-section, .hljs-name, .hljs-selector-id, .hljs-selector-class { color: #d2a8ff; }
+.hljs-attribute, .hljs-attr, .hljs-variable, .hljs-template-variable, .hljs-class .hljs-title, .hljs-type { color: #7ee787; }
+.hljs-symbol, .hljs-bullet, .hljs-subst, .hljs-meta, .hljs-meta .hljs-keyword, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-link { color: #ffa657; }
+.hljs-built_in, .hljs-deletion { color: #ffa657; }
+.hljs-formula { background: #161b22; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: bold; }
+
+/* Code block improvements */
+.code-block-wrapper {
+  margin: 16px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--code-header-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-lang {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.copy-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.copy-btn:hover { background: var(--hover); }
+.copy-btn.copied { background: #238636; border-color: #238636; color: #fff; }
+
+pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  background: var(--code-bg);
+}
+
+pre code.hljs {
+  padding: 0;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.5;
+}
