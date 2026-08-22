@@ -414,7 +414,7 @@ document.addEventListener('drop', (e) => {
   try {
     for (const item of e.dataTransfer.items) {
       const f = item.getAsFile()
-      const p = f?.path
+      const p = f ? window.electronAPI.getPathForFile(f) : ''
       if (p) {
         window.electronAPI.openPath(p)
         handled = true
@@ -616,8 +616,12 @@ function renderMarkdown(content, fileName, filePath) {
     })
   })
 
-  // Image lightbox
+  // Resolve local images relative to the Markdown file, not index.html.
   document.querySelectorAll('#content img').forEach(img => {
+    const originalSource = img.getAttribute('src') || ''
+    const resolvedSource = window.electronAPI.resolveImageSource(originalSource, filePath)
+    if (resolvedSource && resolvedSource !== originalSource) img.src = resolvedSource
+
     img.addEventListener('click', (e) => {
       e.stopPropagation()
       const lb = document.getElementById('lightbox')

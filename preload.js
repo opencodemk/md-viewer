@@ -1,5 +1,6 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, webUtils } = require('electron')
 const { marked, Renderer } = require('marked')
+const { resolveImageSource } = require('./image-source')
 
 function parseMarkdown(content) {
   const renderer = new Renderer()
@@ -26,6 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onWindowStateChanged: (callback) => ipcRenderer.on('window-state-changed', (_event, isMaximized) => callback(isMaximized)),
   onShowWelcome: (callback) => ipcRenderer.on('show-welcome', () => callback()),
   getFileContent: (filePath) => ipcRenderer.invoke('get-file-content', filePath),
+  getPathForFile: (file) => webUtils.getPathForFile(file),
   openPath: (filePath) => ipcRenderer.send('open-path', filePath),
   selectFolder: () => ipcRenderer.invoke('select-folder'),
   saveFile: (filePath, content) => ipcRenderer.invoke('save-file', filePath, content),
@@ -33,4 +35,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getTreeData: (dirPath) => ipcRenderer.invoke('get-tree-data', dirPath),
   getVersion: () => ipcRenderer.invoke('get-app-version'),
   parseMarkdown,
+  resolveImageSource,
 })
