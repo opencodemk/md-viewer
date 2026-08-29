@@ -1,0 +1,43 @@
+{
+  "name": "autobalas-ai",
+  "version": "1.0.0",
+  "description": "Pembantu emel pintar — balas emel secara automatik menggunakan AI bawaan (demo mode)",
+  "main": "main.js",
+  "author": "AutoBalas AI",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "preview": "node server.js",
+    "test": "node test-engine.js"
+  },
+  "build": {
+    "appId": "com.autobalas.ai",
+    "productName": "AutoBalas AI",
+    "directories": { "output": "dist" },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "styles.css",
+      "js/**/*",
+      "img/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "img/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AutoBalas AI",
+      "artifactName": "AutoBalasAI-${version}-setup.exe"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+  <title>AutoBalas AI — Pembantu Emel Pintar</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon">🤖</div>
+        <div>
+          <h1>AutoBalas <span>AI</span></h1>
+          <p>Pembantu Emel Pintar</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-folder="inbox">
+          <span class="nav-ico">📥</span> Peti Masuk
+          <span class="badge" id="badge-inbox">0</span>
+        </button>
+        <button class="nav-item" data-folder="review">
+          <span class="nav-ico">⚠️</span> Perlu Semakan
+          <span class="badge warn" id="badge-review">0</span>
+        </button>
+        <button class="nav-item" data-folder="sent">
+          <span class="nav-ico">📤</span> Dihantar Auto
+          <span class="badge" id="badge-sent">0</span>
+        </button>
+        <button class="nav-item" data-folder="spam">
+          <span class="nav-ico">🚫</span> Spam / Arkib
+          <span class="badge" id="badge-spam">0</span>
+        </button>
+        <button class="nav-item" data-folder="log">
+          <span class="nav-ico">📋</span> Log Aktiviti
+        </button>
+      </nav>
+
+      <div class="ai-card" id="ai-card">
+        <div class="ai-card-head">
+          <span class="pulse-dot" id="pulse-dot"></span>
+          <strong id="ai-status-text">AI Sedang Memantau</strong>
+        </div>
+        <p class="ai-card-sub" id="ai-card-sub">Emel baharu diproses setiap <b>10s</b></p>
+        <label class="switch">
+          <input type="checkbox" id="auto-toggle" checked />
+          <span class="slider"></span>
+          <span class="switch-label">Balasan Auto</span>
+        </label>
+      </div>
+
+      <div class="sidebar-foot">
+        <button class="ghost-btn" id="btn-receive">📨 Terima Emel Sekarang</button>
+        <button class="ghost-btn danger" id="btn-reset">↺ Set Semula Demo</button>
+        <p class="ver">v1.0.0 · Demo Mode</p>
+      </div>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="main">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <h2 id="folder-title">Peti Masuk</h2>
+        <div class="stats" id="stats">
+          <div class="stat"><b id="st-auto">0</b><span>Dibalas Auto</span></div>
+          <div class="stat"><b id="st-review">0</b><span>Semakan</span></div>
+          <div class="stat"><b id="st-spam">0</b><span>Spam</span></div>
+          <div class="stat"><b id="st-conf">–</b><span>Keyakinan</span></div>
+        </div>
+        <button class="icon-btn" id="btn-settings" title="Tetapan AI">⚙️</button>
+      </header>
+
+      <!-- Content: list + reader -->
+      <div class="content">
+
+        <!-- Senarai emel -->
+        <section class="list-pane" id="list-pane"></section>
+
+        <!-- Pembaca emel -->
+        <section class="reader-pane" id="reader-pane">
+          <div class="empty-state" id="empty-state">
+            <div class="empty-ico">✉️</div>
+            <h3>Pilih emel untuk lihat analisis AI</h3>
+            <p>Enjin AutoBalas AI akan mengklasifikasi niat, sentimen & urgensi setiap emel, kemudian menjana draf balasan untuk anda.</p>
+          </div>
+          <div class="reader" id="reader" style="display:none"></div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= MODAL TETAPAN ================= -->
+  <div class="modal-backdrop" id="settings-modal" style="display:none">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>⚙️ Tetapan AutoBalas AI</h3>
+        <button class="close-x" id="btn-close-settings">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Nama Perniagaan
+            <input type="text" id="set-company" placeholder="cth: Kedai TechMY" />
+          </label>
+          <label>Tandatangan Balasan
+            <input type="text" id="set-signature" placeholder="cth: Ahmad Faiz, Khidmat Pelanggan" />
+          </label>
+          <label>Gaya Bahasa AI
+            <select id="set-tone">
+              <option value="formal">Formal (rasmi & sopan)</option>
+              <option value="santai">Santai (mesra & ringkas)</option>
+            </select>
+          </label>
+          <label>Waktu Operasi
+            <input type="text" id="set-hours" placeholder="cth: Isnin–Jumaat, 9:00 pagi – 5:00 petang" />
+          </label>
+        </div>
+
+        <label class="slider-label">Ambang Keyakinan Auto-Hantar: <b id="threshold-val">80%</b>
+          <input type="range" id="set-threshold" min="50" max="95" step="5" value="80" />
+          <small>AI hanya auto-hantar jika keyakinan ≥ ambang. Lebih tinggi = lebih selamat.</small>
+        </label>
+
+        <label>Kata Kunci Sentiasa Semak (pisah dengan koma)
+          <input type="text" id="set-keywords" placeholder="cth: refund, guaman, bank, guaman" />
+        </label>
+
+        <label>Interval Emel Demo Masuk
+          <select id="set-interval">
+            <option value="5000">Setiap 5 saat (lajur pantas)</option>
+            <option value="10000" selected>Setiap 10 saat</option>
+            <option value="20000">Setiap 20 saat</option>
+            <option value="0">Manual sahaja</option>
+          </select>
+        </label>
+      </div>
+      <div class="modal-foot">
+        <button class="ghost-btn" id="btn-cancel-settings">Batal</button>
+        <button class="primary-btn" id="btn-save-settings">💾 Simpan Tetapan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toasts" id="toasts"></div>
+
+  <script src="js/ai-engine.js"></script>
+  <script src="js/demo-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
