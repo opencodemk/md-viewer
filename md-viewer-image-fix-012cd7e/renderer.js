@@ -717,30 +717,7 @@ async function saveEditor() {
   }
 }
 
-// Auto-save state
-let autoSaveEnabled = false
-
-const autoSaveToggle = document.getElementById('autosave-toggle')
-autoSaveToggle.textContent = 'Auto: OFF'
-autoSaveToggle.addEventListener('click', () => {
-  autoSaveEnabled = !autoSaveEnabled
-  autoSaveToggle.textContent = 'Auto: ' + (autoSaveEnabled ? 'ON' : 'OFF')
-  autoSaveToggle.title = autoSaveEnabled ? 'Auto-save enabled' : 'Auto-save disabled'
-  if (autoSaveEnabled) scheduleAutoSave()
-})
-
-// Auto-save (debounced 1s)
-let autoSaveTimer = null
-function scheduleAutoSave() {
-  if (!isEditing) return
-  clearTimeout(autoSaveTimer)
-  autoSaveTimer = setTimeout(() => {
-    saveEditor()
-  }, 1000)
-}
-
 editorTextarea.addEventListener('input', () => {
-  scheduleAutoSave()
   const tab = tabs.find(t => t.id === activeTabId)
   if (tab && !tab.unsaved) {
     tab.unsaved = true
@@ -913,24 +890,14 @@ Welcome to **Markdown Viewer**!
 | Ctrl+F | Find in page |
 | Ctrl+= / Ctrl+- | Font size +/- |
 
-## Markdown Syntax
+## Features
 
-| Syntax | Example | Description |
-|---|---|---|
-| **\*\*text\*\*** | \*\*bold\*\* | Bold text |
-| **\*text\*** | \*italic\* | Italic text |
-| **\*\*\*text\*\*\*** | \*\*\*bold italic\*\*\* | Bold + Italic |
-| **\~\~text\~\~** | \~\~strikethrough\~\~ | Strikethrough |
-| **\# text** | \# Heading 1 | Heading (1-6) |
-| **\> text** | \> quote | Blockquote |
-| **- item** | - list item | Unordered list |
-| **1. item** | 1. ordered list | Ordered list |
-| **\[text](url)** | \[link]\(https://example.com) | Hyperlink |
-| **![alt]** | ![alt text] | Image (syntax) |
-| **\`code\`** | \`code\` | Inline code |
-| **\`\`\`** | \`\`\`code block\`\`\` | Code block |
-| **---** | --- | Horizontal rule |
-| **\| a \| b \|** | \| Header \| Header \| | Table |
+- **Tabs** — open multiple files at once
+- **Edit mode** — click the pencil icon to edit, split view in collapsed mode
+- **Dark/Light theme** — click the moon/sun icon
+- **Sidebar** — browse files, collapse with the arrow button
+- **Find** — Ctrl+F to search within the page
+- **Print to PDF** — Ctrl+P
 
 ## How to Use
 
